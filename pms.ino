@@ -87,7 +87,7 @@ unsigned long previousMotionEndedMillis = 0;
 unsigned long recent_motion_interval = 2700000;  //3600000 is 60 min 300000 is 5 min
 //unsigned long recent_motion_ended_interval = 30000;  //3600000 is 60 min
 unsigned long air_dirty_time = 0;
-unsigned long air_dirty_interval = 300000;  // 3000000 is 5 min
+unsigned long air_dirty_interval = 60000;  // 3000000 is 5 min
 
 struct pm_data {
   uint16_t signature;
@@ -152,8 +152,10 @@ void display_vals(struct pm_data *parsed, struct fan &f) {
 
   if (f.on) {
     onTime = (millis() - previousOnMillis) / 60000;
+    offTime = (previousOnMillis - previousOffMillis) / 60000;
   } else {
     offTime = (millis() - previousOffMillis) / 60000;
+    onTime = (previousOffMillis - previousOnMillis) / 60000;
   }
 
   if (parsed->pm_2_5_env <= 12)
@@ -380,11 +382,11 @@ void fan_control(struct airq &a, struct fan &f, struct pir &p) {
     a.air_dirty = false;
   }
 
-  if (a.air_dirty && !f.on) {
+  if (a.air_dirty && !f.on && !f.recently_off) {
     f.on = true;
     digitalWrite(relay, HIGH);
     previousOnMillis = millis();
-  } else if (!a.air_dirty && f.on) {
+  } else if (!a.air_dirty && f.on && !f.recently_on) {
     f.on = false;
     digitalWrite(relay, LOW);
     previousOffMillis = millis();
@@ -403,8 +405,8 @@ void loop() {
     pir_func(p);
     recent_motion_func(f, p, m);
     fan_control(a, f, p);
-    //recently_on_func(f);
-    //recently_off_func(f);
+    recently_on_func(f);
+    recently_off_func(f);
     Serial.println("");
     time_funcs_called = millis();
   }
