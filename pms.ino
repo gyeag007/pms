@@ -361,12 +361,8 @@ void recently_on_func(struct fan &f) {
 }
 
 void recently_off_func(struct fan &f) {
-  //Serial.println("inside recently off");
-  //Serial.print("previousOffMillis:  ");
-  //Serial.println(millis() - previousOffMillis);
   Serial.print("previousOff Min:  ");
   Serial.println((millis() - previousOffMillis) / 60000.0);
-
 
   if (millis() - previousOffMillis > recently_off_interval) {
     f.recently_off = false;
@@ -404,13 +400,11 @@ void loop() {
   }
 
   if (millis() - time_funcs_called >= funcs_call_interval) {
-    //Serial.println("");
     pir_func(p);
-    //Serial.println("");
     recent_motion_func(f, p, m);
     fan_control(a, f, p);
-    recently_on_func(f);
-    recently_off_func(f);
+    //recently_on_func(f);
+    //recently_off_func(f);
     Serial.println("");
     time_funcs_called = millis();
   }
