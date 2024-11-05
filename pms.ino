@@ -87,7 +87,7 @@ unsigned long previousMotionEndedMillis = 0;
 unsigned long recent_motion_interval = 2700000;  //3600000 is 60 min 300000 is 5 min
 //unsigned long recent_motion_ended_interval = 30000;  //3600000 is 60 min
 unsigned long air_dirty_time = 0;
-unsigned long air_dirty_interval = 60000;  // 3000000 is 5 min
+unsigned long air_dirty_interval = 120000;  // 3000000 is 5 min
 
 struct pm_data {
   uint16_t signature;
