@@ -382,11 +382,11 @@ void fan_control(struct airq &a, struct fan &f, struct pir &p) {
     a.air_dirty = false;
   }
 
-  if (a.air_dirty && !f.on && !f.recently_off) {
+  if (a.air_dirty && !f.on) {
     f.on = true;
     digitalWrite(relay, HIGH);
     previousOnMillis = millis();
-  } else if (!a.air_dirty && f.on && !f.recently_on) {
+  } else if (!a.air_dirty && f.on) {
     f.on = false;
     digitalWrite(relay, LOW);
     previousOffMillis = millis();
