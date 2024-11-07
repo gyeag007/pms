@@ -19,27 +19,27 @@
 // Adafruit libraries are used for display handling and they have different
 // restrictions.
 
-#include <Adafruit_GFX.h>     // Core graphics library
-#include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
+#include <Adafruit_GFX.h>    // Core graphics library
+#include <Adafruit_ST7735.h> // Hardware-specific library for ST7735
 #include <SPI.h>
 #include <SoftwareSerial.h>
 
 
-#define TFT_CS 10
-#define TFT_RST 9
-#define TFT_DC 8
+#define TFT_CS        10
+#define TFT_RST        9 
+#define TFT_DC         8
 
-int relay = 7;  // Tells Arduino the relay is connected to pin 7
+int relay = 7;              // Tells Arduino the relay is connected to pin 7
 
 /*
  * PIR sensor tester
  */
-
+ 
 //int ledPin = 13;                // choose the pin for the LED
-int inputPin = 4;    // choose the input pin (for PIR sensor)
-int pirState = LOW;  // we start, assuming no motion detected
-int val = 0;         // variable for reading the pin status
-
+int inputPin = 4;               // choose the input pin (for PIR sensor)
+int pirState = LOW;             // we start, assuming no motion detected
+int val = 0;                    // variable for reading the pin status
+ 
 
 /*
    ST7735 supports 18 bit color, but the interface used uint16_t and thus
@@ -50,63 +50,63 @@ int val = 0;         // variable for reading the pin status
    uint16_t removes the byte ordering from consideration.
 */
 // color definitions
-const uint16_t color_black = 0x0000;
-const uint16_t color_blue = 0x001F;
-const uint16_t color_red = 0xF800;
-const uint16_t color_green = 0x07E0;
-const uint16_t color_magenta = 0xF81F;
-const uint16_t color_yellow = 0xFFE0;
-const uint16_t color_orange = 0xFB40;
-const uint16_t color_white = 0xFFFF;
+const uint16_t  color_black        = 0x0000;
+const uint16_t  color_blue         = 0x001F;
+const uint16_t  color_red          = 0xF800;
+const uint16_t  color_green        = 0x07E0;
+const uint16_t  color_magenta      = 0xF81F;
+const uint16_t  color_yellow       = 0xFFE0;
+const uint16_t  color_orange       = 0xFB40;
+const uint16_t  color_white        = 0xFFFF;
 
-uint16_t text_color = color_blue;
-uint16_t background_color = color_white;
-uint16_t font_size = 3;
+uint16_t text_color         = color_blue;
+uint16_t background_color    = color_white;
+uint16_t font_size = 3 ;
 
 
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
-SoftwareSerial pms_serial(2, 3);
+SoftwareSerial pms_serial( 2, 3 ) ;
 
 // we know the record is always 32 bytes and frame length is 28
-unsigned char serial_signature[4] = { 0x42, 0x4d, 0x00, 0x1c };
-unsigned char serial_data[32];
-uint16_t *pm_data = (unsigned short *)&serial_data[0];
-unsigned long time_sent = 0;
-unsigned long send_interval = 3000;
-unsigned long time_funcs_called = 0;
-unsigned long funcs_call_interval = 3000;
+unsigned char serial_signature[4] = { 0x42, 0x4d, 0x00, 0x1c } ;
+unsigned char serial_data[32] ;
+uint16_t *pm_data = (unsigned short *)&serial_data[0] ;
+unsigned long time_sent = 0 ;
+unsigned long send_interval = 3000 ;
+unsigned long time_funcs_called = 0 ;  
+unsigned long funcs_call_interval = 3000 ; 
 
 
-unsigned int n_read = 0;
+unsigned int n_read = 0 ;
 unsigned long previousOnMillis = 0;
 unsigned long previousOffMillis = 0;
-unsigned long recently_on_interval = 120000;   //600000 is 10 min, stays on for 10 min after acheiving clean air
-unsigned long recently_off_interval = 180000;  //300000 is 5 min, stays off for 5 min after fan turns off
+unsigned long recently_on_interval = 300000;  //600000 is 10 min, stays on for 10 min after acheiving clean air
+unsigned long recently_off_interval = 300000; //300000 is 5 min, stays off for 5 min after fan turns off
 unsigned long previousMotionMillis = 0;
 unsigned long previousMotionEndedMillis = 0;
 unsigned long recent_motion_interval = 2700000;  //3600000 is 60 min 300000 is 5 min
 //unsigned long recent_motion_ended_interval = 30000;  //3600000 is 60 min
-unsigned long air_dirty_time = 0;
-unsigned long air_dirty_interval = 120000;  // 3000000 is 5 min
+unsigned long air_dirty_time = 0 ;
+unsigned long air_dirty_interval = 300000 ; // 3000000 is 5 min
 
 struct pm_data {
-  uint16_t signature;
-  uint16_t frame_len;
-  uint16_t pm_1_0_std;
-  uint16_t pm_2_5_std;
-  uint16_t pm_10_0_std;
-  uint16_t pm_1_0_env;
-  uint16_t pm_2_5_env;
-  uint16_t pm_10_0_env;
-  uint16_t cnt_0_3;
-  uint16_t cnt_0_5;
-  uint16_t cnt_1_0;
-  uint16_t cnt_2_5;
-  uint16_t cnt_5_0;
-  uint16_t cnt_10_0;
-  uint16_t reserved;
-  uint16_t checksum;
-} parsed;
+	  uint16_t signature ;
+	  uint16_t frame_len ;
+	  uint16_t pm_1_0_std ;
+	  uint16_t pm_2_5_std ;
+	  uint16_t pm_10_0_std ;
+	  uint16_t pm_1_0_env ;
+	  uint16_t pm_2_5_env ;
+	  uint16_t pm_10_0_env ;
+	  uint16_t cnt_0_3 ;
+	  uint16_t cnt_0_5 ;
+	  uint16_t cnt_1_0 ;
+	  uint16_t cnt_2_5 ;
+	  uint16_t cnt_5_0 ;
+	  uint16_t cnt_10_0 ;
+	  uint16_t reserved ;
+	  uint16_t checksum ;
+} parsed ;
 
 uint8_t wake[] = { 0x42, 0x4D, 0xE4, 0x00, 0x01, 0x01, 0x74 };
 uint8_t sleep[] = { 0x42, 0x4D, 0xE4, 0x00, 0x00, 0x01, 0x73 };
@@ -114,13 +114,13 @@ uint8_t sleep[] = { 0x42, 0x4D, 0xE4, 0x00, 0x00, 0x01, 0x73 };
 
 
 struct fan {
-  bool on = false;
-  bool recently_on = false;
-  bool recently_off = false;
+	bool on = false;
+	bool recently_on = false;
+	bool recently_off = false;
 };
 
 struct airq {
-  bool air_dirty = false;
+	bool air_dirty = false;
 };
 
 struct pir {
@@ -130,10 +130,6 @@ struct pir {
 struct mypms {
   bool awake = false;
 };
-struct fan f;
-struct airq a;
-struct pir p;
-struct mypms m;
 
 unsigned int x_orig = 10, y_orig = 10, y_skip = 40, num_offset = 55;
 char buff1[100], buff2[100], buff3[100], buff4[100];
@@ -141,7 +137,6 @@ char label1[] = " 1:";
 char label2[] = " 2:";
 char label3[] = "On ";
 char label4[] = "Off";
-
 
 long onTime, offTime;
 
@@ -227,78 +222,98 @@ void display_vals(struct pm_data *parsed, struct fan &f) {
 
 }
 
+
 // Gets the next record. Returns true if the record has been read.
 // Extra logic, because the sensor sometimes returns corrupted data.
-bool get_data() {
-  int i;
-  uint16_t sum;
-  uint16_t *flip_buff = (unsigned short *)&parsed;
+bool get_data()
+{
+	int i ;
+	uint16_t sum ;
+	uint16_t *flip_buff = (unsigned short *)&parsed ;
 
-  if (pms_serial.available() < 4)
-    return false;
+	if ( pms_serial.available() < 4 )
+		return false ;
 
-  for (i = 0; i < 4; i++)
-    if (pms_serial.read() != serial_signature[i])
-      return false;
-    else
-      serial_data[i] = serial_signature[i];
+	for ( i = 0 ; i < 4 ; i++ )
+		if ( pms_serial.read() != serial_signature[i] )
+			return false ;
+		else
+			serial_data[i] = serial_signature[i] ;
+	
+	// signature OK, read the data
 
-  // signature OK, read the data
+	while ( pms_serial.available() < 28 ) {
+		// wait for the rest of the record
+	}
+	for ( i = 4 ; i < 32 ; i++ )
+		serial_data[i] = pms_serial.read() ;
 
-  while (pms_serial.available() < 28) {
-    // wait for the rest of the record
-  }
-  for (i = 4; i < 32; i++)
-    serial_data[i] = pms_serial.read();
+	// load the parsed by going from big endian to local
+	
+	for ( i = 0 ; i < 16 ; i++ )
+		flip_buff[i] = ((uint16_t)serial_data[2*i])<<8 |
+				(uint16_t)serial_data[2*i+1] ;
 
-  // load the parsed by going from big endian to local
+	// compute and check checksum
+	sum = 0 ;
+	for ( i = 0 ; i < 30 ; i++ )
+		sum += serial_data[i] ;
+	if ( sum != parsed.checksum )
+		return false ;
 
-  for (i = 0; i < 16; i++)
-    flip_buff[i] = ((uint16_t)serial_data[2 * i]) << 8 | (uint16_t)serial_data[2 * i + 1];
-
-  // compute and check checksum
-  sum = 0;
-  for (i = 0; i < 30; i++)
-    sum += serial_data[i];
-  if (sum != parsed.checksum)
-    return false;
-
-  return true;
+	return true ;
 }
 
+  struct fan f ;
+  struct airq a ;
+  struct pir p ;
+  struct mypms m;
 
 void setup() {
-  Serial.begin(115200);
-  pms_serial.begin(9600);    // connect to the PMS1003
-  pinMode(inputPin, INPUT);  // declare sensor as input
-  pinMode(relay, OUTPUT);    // Initialize the Atmel GPIO pin as an output
-  buff1[0] = '\0';
-  buff2[0] = '\0';
-  buff3[0] = '\0';
-  buff4[0] = '\0';
-  delay(1000);
 
-  // connect to the display
-  tft.initR(INITR_BLACKTAB);  // Init ST7735R chip
 
-  // initialise the display
-  tft.setFont();
-  tft.fillScreen(background_color);
-  tft.setTextColor(text_color);
-  tft.setTextSize(font_size);
+	Serial.begin( 115200 ) ;
 
-  Serial.println(sizeof(int));
+	pms_serial.begin(9600); // connect to the PMS1003
 
-  Serial.println("done setup");
+  //pinMode(ledPin, OUTPUT);      // declare LED as output
+  pinMode(inputPin, INPUT);     // declare sensor as input
+
+  //pms_serial.write(wake, sizeof(wake));
+  //m.awake = true;
+  //Serial.println("waking up pms in setup...");
+  //delay(30000);
+
+
+  pinMode(relay, OUTPUT);      // Initialize the Atmel GPIO pin as an output
+
+	buff1[0] = '\0' ;
+	buff2[0] = '\0' ;
+	buff3[0] = '\0' ;
+  buff4[0] = '\0' ;
+	delay( 1000 ) ;
+	
+	// connect to the display
+	tft.initR(INITR_BLACKTAB); // Init ST7735R chip
+ 
+	// initialise the display
+	tft.setFont();
+	tft.fillScreen(background_color);
+	tft.setTextColor(text_color);
+	tft.setTextSize(font_size);
+
+	Serial.println( sizeof( int ) ) ;
+
+	Serial.println( "done setup" ) ;
+
 }
 
-
-void pir_func(struct pir &p) {
+void pir_func(struct pir& p){
   val = digitalRead(inputPin);  // read input value
   if (val == HIGH) {            // check if the input is HIGH
-                                //digitalWrite(ledPin, HIGH);  // turn LED ON
-    p.recent_motion = true;
-    previousMotionMillis = millis();
+    //digitalWrite(ledPin, HIGH);  // turn LED ON
+      p.recent_motion = true;
+      previousMotionMillis = millis();
     if (pirState == LOW) {
       // we have just turned on
       //Serial.println("Motion detected!");
@@ -307,7 +322,7 @@ void pir_func(struct pir &p) {
     }
   } else {
     //digitalWrite(ledPin, LOW); // turn LED OFF
-    if (pirState == HIGH) {
+    if (pirState == HIGH){
       // we have just turned of
       previousMotionEndedMillis = millis();
       //Serial.println("Motion ended!");
@@ -320,100 +335,210 @@ void pir_func(struct pir &p) {
 unsigned long sleep_test_time = millis();
 
 void sleep_test_func() {
-  if (millis() - sleep_test_time > 600000) {
-    Serial.print("Trying Sleep  ");
-    pms_serial.write(sleep, sizeof(sleep));
-    delay(30000);
-    Serial.print("Trying Wake  ");
-    delay(10000);
-    pms_serial.write(wake, sizeof(wake));
-    delay(30000);
-    sleep_test_time = millis();
-  }
+   if(millis() - sleep_test_time > 600000) {
+      Serial.print("Trying Sleep  ");
+      pms_serial.write(sleep, sizeof(sleep));
+      delay(30000);
+      Serial.print("Trying Wake  ");
+      delay(10000);
+      pms_serial.write(wake, sizeof(wake));
+      delay(30000);
+      sleep_test_time = millis();
+
+    }
 }
 
-void recent_motion_func(struct fan &f, struct pir &p, struct mypms &m) {
+void recent_motion_func(struct fan& f, struct pir& p, struct mypms& m) {
+  //Serial.println("inside recent motion func") ;
+  //Serial.print("previousMotionMillis:  ");
+  //Serial.println(millis() - previousMotionMillis);
   Serial.print("previousMotion Min:  ");
-  Serial.println((millis() - previousMotionMillis) / 60000.0);
-  if ((millis() - previousMotionMillis > recent_motion_interval) && m.awake) {
-    p.recent_motion = false;
+  Serial.println((millis() - previousMotionMillis)/60000.0);
+  if((millis() - previousMotionMillis > recent_motion_interval) && m.awake) {
+		p.recent_motion = false;
     Serial.println("putting PMS to sleep  ");
     pms_serial.write(sleep, sizeof(sleep));
     m.awake = false;
-  } else if (p.recent_motion && !m.awake) {
-    Serial.print("previousMotion Min:  ");
-    Serial.println((millis() - previousMotionMillis) / 60000.0);
-    Serial.println("waking up pms ");
-    pms_serial.write(wake, sizeof(wake));
-    m.awake = true;
-    //delay(30000); //delay after wake
-    Serial.print("p.recent_motion:   ");
-    Serial.print(p.recent_motion);
+	  //set parsed.pm_2_5_env = 0;
+    //delay(5000);
+		//f.on = false ;// 
+    //digitalWrite(relay, LOW);
+    //f.recently_off = true;
+    //previousOffMillis = millis() ;
   }
+    else if (p.recent_motion && !m.awake) {
+     // Serial.println("inside recent motion func wake part") ;
+      //Serial.print("previousMotionMillis:  ");
+      //Serial.println(millis() - previousMotionMillis);
+      Serial.print("previousMotion Min:  ");
+      Serial.println((millis() - previousMotionMillis)/60000.0);
+      Serial.println("waking up pms ");
+      pms_serial.write(wake, sizeof(wake));
+      m.awake = true;
+      delay(30000);
+
+      Serial.print("p.recent_motion:   ");
+      Serial.print(p.recent_motion);
+    }
+
+  
+
 }
 
-void recently_on_func(struct fan &f) {
+void recently_on_func(struct fan& f) {
+  //Serial.println("inside recently on") ;
+  //Serial.print("previousOnMillis:  ");
+  //Serial.println(millis() - previousOnMillis);
   Serial.print("previousOn Min:  ");
-  Serial.println((millis() - previousOnMillis) / 60000.0);
+  Serial.println((millis() - previousOnMillis)/60000.0);
 
 
-  if (millis() - previousOnMillis > recently_on_interval) {
-    f.recently_on = false;
+  if(millis() - previousOnMillis > recently_on_interval) {
+		f.recently_on = false;
+    
   }
+
 }
 
-void recently_off_func(struct fan &f) {
+void recently_off_func(struct fan& f) {
+  //Serial.println("inside recently off");
+  //Serial.print("previousOffMillis:  ");
+  //Serial.println(millis() - previousOffMillis);
   Serial.print("previousOff Min:  ");
-  Serial.println((millis() - previousOffMillis) / 60000.0);
+  Serial.println((millis() - previousOffMillis)/60000.0);
 
-  if (millis() - previousOffMillis > recently_off_interval) {
+
+  if(millis() - previousOffMillis > recently_off_interval){
     f.recently_off = false;
   }
+
 }
 
-void fan_control(struct airq &a, struct fan &f, struct pir &p) {
+void fan_control (struct airq& a, struct fan& f, struct pir& p) {
+
+  //Serial.println( "inside fan control" ) ;
+  //Serial.print("air_dirty_time:  ");
+  //Serial.println(millis() - air_dirty_time);
   Serial.print("air_dirty_time Min:  ");
-  Serial.println((millis() - air_dirty_time) / 60000.0);
+  Serial.println((millis() - air_dirty_time)/60000.0);
 
-  if (parsed.pm_2_5_env >= 56) {
-    a.air_dirty = true;
+	if(parsed.pm_2_5_env >= 56){ // && m.awake
+		a.air_dirty = true ;
     air_dirty_time = millis();
-  } else if (millis() - air_dirty_time > air_dirty_interval) {
-    a.air_dirty = false;
+    }
+	else if(millis() - air_dirty_time > air_dirty_interval){
+    // if millis() - air_dirty_time > air_dirty_interval
+		a.air_dirty = false ;
+
   }
 
-  if (a.air_dirty && !f.on) {
-    f.on = true;
+  Serial.print( "air_dirty: " ) ;
+  Serial.println(a.air_dirty) ;
+
+	if(a.air_dirty && !f.recently_off && p.recent_motion && !f.on){ //&& !f.recently_on && !f.on && m.awake
+    Serial.println( "inside fan turn on" ) ;
+    f.on = true ; // or maybe digitalWrite(relay, HIGH)
     digitalWrite(relay, HIGH);
+		f.recently_on = true ;
     previousOnMillis = millis();
-  } else if (!a.air_dirty && f.on) {
-    f.on = false;
+
+    //Serial.println(f.on) ;
+    }
+	else if((!a.air_dirty && !f.recently_on && f.on) || (!p.recent_motion && f.on)){ // && m.awake
+		Serial.println( "inside fan turn off" ) ;
+    f.on = false ;// or maybe digitalWrite(relay, LOW)
     digitalWrite(relay, LOW);
-    previousOffMillis = millis();
-  }
+    f.recently_off = true;
+    previousOffMillis = millis() ;
+    Serial.print( "last duty cycle Min: " ) ;
+    Serial.println((previousOnMillis - previousOffMillis)/60000.0);
+
+
+    Serial.println(f.on) ;
+    }
 }
+
+
+
+
 
 void loop() {
 
-  int i;
+	int i ;
 
-  if (!get_data()) {
-    return;
-  }
-
-  if (millis() - time_funcs_called >= funcs_call_interval) {
-    pir_func(p);
+  if ( millis() - time_funcs_called >= funcs_call_interval ) {
+    //Serial.println("");
+	  pir_func(p);
+    //Serial.println("");
     recent_motion_func(f, p, m);
-    fan_control(a, f, p);
-    recently_on_func(f);
-    recently_off_func(f);
-    Serial.println("");
+    fan_control(a, f, p) ;
+    recently_on_func(f) ;
+		recently_off_func(f) ;
+	  Serial.println("");
+
+    //Serial.print("parsed.pm_2_5_env:  ");
+    //Serial.println(parsed.pm_2_5_env);
+    //Serial.print("f.on: ");
+    //Serial.println(f.on);
+    //Serial.println("");
+
     time_funcs_called = millis();
   }
 
-  if (millis() - time_sent >= send_interval) {
-    display_vals(&parsed, f);
-    time_sent = millis();
-    delay(1000);
-  }
+	if ( !get_data() ) {
+
+		return ;
+	}
+
+
+
+
+
+	if ( millis() - time_sent >= send_interval ) {
+
+
+
+    
+		display_vals( &parsed, f) ;
+  /*
+		Serial.println( "parsed data" ) ;
+		Serial.println( parsed.signature , HEX ) ;
+		Serial.println( parsed.frame_len ) ;
+  */
+
+    /*
+		Serial.println( "CF=1, standard particle" ) ;
+		Serial.println( String("PM 1.0: ")+String(parsed.pm_1_0_std)) ;
+		Serial.println( String("PM 2.5: ")+String(parsed.pm_2_5_std)) ;
+		Serial.println( String("PM10.0: ")+String(parsed.pm_10_0_std)) ;
+    */
+    /*
+		Serial.println( "under atmospheric environment" ) ;
+		Serial.println( String("PM 1.0: ")+String(parsed.pm_1_0_env)) ;
+		Serial.println( String("PM 2.5: ")+String(parsed.pm_2_5_env)) ;
+		Serial.println( String("PM10.0: ")+String(parsed.pm_10_0_env)) ;
+    Serial.println("");
+    */
+
+    /*
+		Serial.println( "number of particles per 0.1L of air" ) ;
+		Serial.println( String("diam >  0.3 microns ") + 
+				String(parsed.cnt_0_3)) ;
+		Serial.println( String("diam >  0.5 microns ") + 
+				String(parsed.cnt_0_5)) ;
+		Serial.println( String("diam >  1.0 microns ") + 
+				String(parsed.cnt_1_0)) ;
+		Serial.println( String("diam >  2.5 microns ") + 
+				String(parsed.cnt_2_5)) ;
+		Serial.println( String("diam >  5.0 microns ") + 
+				String(parsed.cnt_5_0)) ;
+		Serial.println( String("diam > 10.0 microns ") + 
+				String(parsed.cnt_10_0)) ;
+    */
+
+
+		time_sent = millis() ;
+		delay( 1000 ) ;
+	}
+	
 }
